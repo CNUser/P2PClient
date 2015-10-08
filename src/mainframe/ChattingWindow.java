@@ -10,9 +10,15 @@ import java.awt.GridLayout;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 import javax.swing.*;
 
+import connection.HostInfo;
 
 class ChattingWindow extends JFrame 
 	implements Runnable {
@@ -23,7 +29,19 @@ class ChattingWindow extends JFrame
 	private JButton enterButton;
 	private JPanel msgPanel;
 	private JPanel buttonPanel;
-	protected static String id;
+	protected static String id; // 窗口id，以聊天对方的ip+name+port作为标志
+	
+	private String serverName;
+	private String serverIP;
+	private int serverPort;
+//	private int receivePort = HostInfo.getPort();
+	private DatagramSocket sendSocket = null;		// 声明发送信息的数据报套接字
+	private DatagramPacket sendPacket = null; 		// 声明发送信息的数据包
+//	private DatagramSocket receiveSocket = null;	// 声明接收信息的数据报套接字
+//	private DatagramPacket receivePacket = null;	// 声明接收信息的数据包
+	
+//	private static final int BUFFER_SIZE = 4096;	// 数据缓存的大小
+//	private byte[] inBuf = null;
 	
 	public ChattingWindow(String id) {
 		
@@ -64,6 +82,8 @@ class ChattingWindow extends JFrame
 				// TODO Auto-generated method stub
 				
 				// 通信...
+				String msg = inputMsgArea.getText();
+				sendMsg(msg);
 			}
 			
 		});
@@ -76,15 +96,71 @@ class ChattingWindow extends JFrame
 		msgPanel.add(enterButton);
 		
 
+		this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+//				closeSocket();
+			}
+		});
+		
 		setResizable(false);
 		setLayout(new BorderLayout());
 		add(msgPanel, BorderLayout.CENTER);
 		setVisible(true);
 	}
 
+	// 接收消息
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		
+//		String receiveInfo = "";
+//		try {
+//			inBuf = new byte[BUFFER_SIZE];
+//			receivePacket = new DatagramPacket(inBuf, inBuf.length);
+//			receiveSocket = new DatagramSocket(receivePort);
+//		
+//		} catch (Exception e) {
+//			JOptionPane.showMessageDialog(this, e.getMessage(), 
+//					"ChattingWindows Error", JOptionPane.ERROR_MESSAGE);
+//		}
+//		
+//		while (true) {
+//			if (receiveSocket == null) {
+//				break;
+//			}
+//			else {
+//				try {
+//					receiveSocket.receive(receivePacket);
+//					String receiveMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
+//					displayMsgArea.append(serverName + ":" + "(" + serverIP + ")" +
+//											receiveMsg + "\n");
+//					
+//				} catch (Exception e) {
+//					JOptionPane.showMessageDialog(this, e.getMessage(), 
+//							"ChattingWindows Error", JOptionPane.ERROR_MESSAGE);
+//				}
+//			}
+//		}
 	}
+	
+	private void sendMsg(String msg) {
+		try {
+			InetAddress address = InetAddress.getByName(serverIP);
+			byte[] msgOfBytes = msg.getBytes();
+			sendPacket = new DatagramPacket(msgOfBytes, msgOfBytes.length, address, serverPort);
+			sendSocket = new DatagramSocket();
+			sendSocket.send(sendPacket);
+			
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), 
+					"ChattingWindows Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	public void setDisplayAreaText(String text) {
+		displayMsgArea.setText(text);
+	}
+	
+//	private void closeSocket() {
+//		receiveSocket.close();
+//	}
 }

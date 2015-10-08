@@ -4,8 +4,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.InetAddress;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -26,6 +28,7 @@ class PeerListPanel extends JPanel {
 	private String localIPAddress;
 	private String hostName;
 	private String privateInfo;
+	public  Hashtable<String, JFrame> chattingWindowTable = new Hashtable<String, JFrame>();
 	
 	public PeerListPanel(Vector<PeerStruct> peersList) {
 		// TODO Auto-generated constructor stub
@@ -63,8 +66,13 @@ class PeerListPanel extends JPanel {
 					TreePath path = friendsTree.getPathForLocation(e.getX(), e.getY());
 					TreeNode node = (TreeNode)path.getLastPathComponent();
 
+					int indexOfPeersList = node.getIndex(node);
+					// 获取ip
+					String ipKey = peersList.get(indexOfPeersList).getIpAddress();
+					
 					// 弹出发送消息界面...
-					new ChattingWindow(localIPAddress);
+					ChattingWindow cw = new ChattingWindow(node.toString());
+					chattingWindowTable.put(ipKey, cw);
 				}
 			}
 			

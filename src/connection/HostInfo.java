@@ -45,5 +45,9 @@ public class HostInfo {
         String name = netAddress.getHostName(); //get the host address
         return name;
     }
+    
+    public static int getPort() {
+    	return new Integer("5050");
+    }
  
 }
