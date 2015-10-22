@@ -19,8 +19,9 @@ import java.net.InetAddress;
 import javax.swing.*;
 
 import connection.HostInfo;
+import myutil.*;
 
-class ChattingWindow extends JFrame 
+public class ChattingWindow extends JFrame 
 	implements Runnable {
 	private JScrollPane displayScrollPane;
 	private JScrollPane inputScrollPane;
@@ -33,12 +34,14 @@ class ChattingWindow extends JFrame
 	
 	private String serverName;
 	private String serverIP;
-	private int serverPort;
+	private String serverPort;
 //	private int receivePort = HostInfo.getPort();
 	private DatagramSocket sendSocket = null;		// 声明发送信息的数据报套接字
 	private DatagramPacket sendPacket = null; 		// 声明发送信息的数据包
 //	private DatagramSocket receiveSocket = null;	// 声明接收信息的数据报套接字
 //	private DatagramPacket receivePacket = null;	// 声明接收信息的数据包
+	
+	private boolean alighmentFlag = false;
 	
 //	private static final int BUFFER_SIZE = 4096;	// 数据缓存的大小
 //	private byte[] inBuf = null;
@@ -46,6 +49,20 @@ class ChattingWindow extends JFrame
 	public ChattingWindow(String id) {
 		
 		this.id = id;
+		
+		// id 包含对方的主机名，IP，Port信息
+		String[] info = id.split(" ");
+		if (3 == info.length) {
+			serverName = info[0];
+			serverIP   = info[1];
+			serverPort = info[2];
+			
+			// 设置window的title
+			setTitle(serverName + "[" + serverIP + "]");
+		}
+		else {
+			System.out.println("split error-->" + id);
+		}
 		
 		// 绝对布局
 		setBounds(150, 150, 600, 500);
@@ -84,6 +101,9 @@ class ChattingWindow extends JFrame
 				// 通信...
 				String msg = inputMsgArea.getText();
 				sendMsg(msg);
+				String text = HostInfo.getHostIp(HostInfo.getInetAddress())+ ":" + "\n" +
+				              msg + "\n";
+				setDisplayAreaText(text, alighmentFlag);
 			}
 			
 		});
@@ -146,7 +166,7 @@ class ChattingWindow extends JFrame
 		try {
 			InetAddress address = InetAddress.getByName(serverIP);
 			byte[] msgOfBytes = msg.getBytes();
-			sendPacket = new DatagramPacket(msgOfBytes, msgOfBytes.length, address, serverPort);
+			sendPacket = new DatagramPacket(msgOfBytes, msgOfBytes.length, address, Integer.parseInt(serverPort));
 			sendSocket = new DatagramSocket();
 			sendSocket.send(sendPacket);
 			
@@ -156,7 +176,16 @@ class ChattingWindow extends JFrame
 		}
 	}
 	
-	public void setDisplayAreaText(String text) {
+	// 设置显示内容，flag = true时左侧显示，蓝色
+	public void setDisplayAreaText(String text, boolean flag) {
+		displayMsgArea.setAlignmentY(RIGHT_ALIGNMENT);
+		displayMsgArea.setForeground(Color.BLACK);
+		
+		if (flag) {
+			displayMsgArea.setAlignmentY(LEFT_ALIGNMENT);
+			displayMsgArea.setForeground(Color.BLUE);
+		}
+		
 		displayMsgArea.setText(text);
 	}
 	

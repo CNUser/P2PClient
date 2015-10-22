@@ -1,0 +1,5 @@
+<? xml version="1.0"?>
+<config>
+	<serverIP>192.16.45.8</serverIP>
+	<serverPort>4567</serverPort>
+</config>
