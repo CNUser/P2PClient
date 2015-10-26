@@ -27,26 +27,22 @@ public class ClientFrame extends JFrame
 		setLayout(new BorderLayout());
 		
 		add(panel, BorderLayout.CENTER);
-		
-		this.addWindowListener(new WindowAdapter() {
-
-			@Override
-			public void windowClosed(WindowEvent e) {
-				// TODO Auto-generated method stub
-				super.windowClosed(e);
-			}
 			
-		});		
-		
+		Toolkit kit = Toolkit.getDefaultToolkit();
+		Dimension dimension = kit.getScreenSize();
+		int screenHeight = dimension.height;
+		int screenWidth = dimension.width;
+
+		setLocation(screenWidth * 3 / 4, screenHeight / 6);
 		setSize(300, 600);
 		setTitle("P2PCLient");
+		setIconImage(kit.createImage("icon/frame.png"));
 		setVisible(true);
 	}
 	
 	public static ClientFrame getInstance() {
 		if (instance == null) {
 			instance = new ClientFrame();
-			instance.run();
 		}
 		
 		return instance;
@@ -56,24 +52,29 @@ public class ClientFrame extends JFrame
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		
-		while (true) {
-			try {				
-				Thread t = new ConnectWithServer(this.getInstance());
-				t.start();
-				Thread.sleep(15000);
-			} catch (InterruptedException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
 	}
 	
 	public PeerListPanel getPeerListPanel() {
 		return this.panel;
 	}
 	
-	public static void main(String[] args) {
-		ClientFrame.getInstance();
+	public static void main(String[] args) throws Exception {
+		ClientFrame f = ClientFrame.getInstance();
+		FlagClass.flag = true;
+		ConnectWithServer t1 = new ConnectWithServer(ClientFrame.getInstance());
+		ConnectWithPeerThread t2 = new ConnectWithPeerThread(ClientFrame.getInstance().getPeerListPanel());
+		
+		f.addWindowListener(new WindowAdapter() {
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// TODO Auto-generated method stub
+				super.windowClosing(e);
+				t1.flag = false;
+				t2.flag = false;
+			}
+		});
+		
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 }

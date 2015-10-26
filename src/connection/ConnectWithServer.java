@@ -14,9 +14,11 @@ import myutil.XMLUtil;
 
 // 客户端与服务器的连接采用 tcp 协议
 public class ConnectWithServer extends Thread {
+	public static boolean flag = true;
 	private ClientFrame clientUI;
 	private String serverIP = XMLUtil.getServerIP(XMLUtil.createDocument()) ;
 	private final int servePort = Integer.parseInt(XMLUtil.getServerPort(XMLUtil.createDocument())); // 服务端口
+	private String receivePort = XMLUtil.getReceivePort(XMLUtil.createDocument());
 	private final String REGISTER = "register";
 	private Socket socket;
 	private BufferedReader in;
@@ -25,66 +27,76 @@ public class ConnectWithServer extends Thread {
 	public ConnectWithServer(ClientFrame ui) throws IOException {
 		clientUI = ui;
 
-		try {
-			socket = new Socket(serverIP, servePort);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			out = new PrintWriter(socket.getOutputStream());
-
-		} catch (Exception e) {
-			if (out != null)
-				out.close();
-			if (in != null)
-				in.close();
-			if (socket != null)
-				socket.close();
-
-			e.printStackTrace();
-		}
-
 		this.start();
 	}
 
 	public void run() {
-
-		try {
-			String msg = "";
-			String[] peersStrList = null;
-
+		
+		while (flag) {
+//			System.out.println("run");
 			try {
-				msg = in.readLine();
+				socket = new Socket(serverIP, servePort);
+				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				out = new PrintWriter(socket.getOutputStream(), true);
+				String msg = null;
+				String[] peersStrList = null;
+
+				try {
+					out.println(REGISTER+receivePort);
+					msg = in.readLine();
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				if (msg == null || msg.equals("")) {
+//					System.out.println("empty info");
+					repaintPeersListOfClient(null, false);
+				}
+				
+				if ((null != msg) && !msg.equals("")) {
+					peersStrList = msg.split(",");
+
+					repaintPeersListOfClient(peersStrList, true);
+				}
+				
+				// 每隔 5s，向服务器登记，更新peersList
+				sleep(5000);
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-
-			peersStrList = msg.split(",");
-
-			repaintPeersListOfClient(peersStrList);
-
-			closeConnection();
-
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+		
+		closeConnection();
 
 	}
 
 	// 重画clientUI的PeersListPanel
-	public void repaintPeersListOfClient(String[] peersList) {
+	public void repaintPeersListOfClient(String[] peersList, boolean flag) {
+//		System.out.println("repaintPeersListOfClient");
 		Vector<PeerStruct> peersTabel = new Vector<PeerStruct>();
-		int indexOfTabel = 0;
+		
+		if (false == flag)
+			clientUI.getPeerListPanel().SetFriendsInfo(null, false);
+		
+		if (flag) {
+			
+			int indexOfTabel = 0;
 
-		for (int i = 0; i < peersList.length; i++) {
-			if (0 == (i % 3)) {
-				PeerStruct peer = new PeerStruct(peersList[i], peersList[i + 1], peersList[i + 2]);
+			for (int i = 0; i < peersList.length; i++) {
+				if (0 == (i % 3)) {
+					PeerStruct peer = new PeerStruct(peersList[i], peersList[i + 1], peersList[i + 2]);
 
-				peersTabel.add(peer);
+					peersTabel.add(peer);
 
-				indexOfTabel++;
+					indexOfTabel++;
+				}
 			}
-		}
 
-		clientUI.getPeerListPanel().SetFriendsInfo(peersTabel);
+			clientUI.getPeerListPanel().SetFriendsInfo(peersTabel, true);
+		}
+		
 	}
 
 	public void closeConnection() {

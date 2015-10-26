@@ -13,7 +13,7 @@ public class XMLUtil {
 			// 创建saxReader对象  
 	        SAXReader reader = new SAXReader();  
 	        // 通过read方法读取一个文件 转换成Document对象  
-	        Document document = reader.read(new File("info.xml")); 
+	        Document document = reader.read(new File("src/info.xml")); 
 	        
 	        return document;
 		} catch (DocumentException e) {
@@ -38,6 +38,16 @@ public class XMLUtil {
         Element root = document.getRootElement(); 
         
         String serverIP =  root.element("serverPort").getTextTrim();
+        
+        return serverIP;
+        
+	}
+	
+	public static String getReceivePort(Document document) {
+		//获取根节点元素对象  
+        Element root = document.getRootElement(); 
+        
+        String serverIP =  root.element("receivePort").getTextTrim();
         
         return serverIP;
         

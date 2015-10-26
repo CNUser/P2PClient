@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.Set;
+
+import myutil.XMLUtil;
  
  
 public class HostInfo {
@@ -47,7 +49,7 @@ public class HostInfo {
     }
     
     public static int getPort() {
-    	return new Integer("5050");
+    	return Integer.parseInt(XMLUtil.getServerPort(XMLUtil.createDocument()));
     }
  
 }

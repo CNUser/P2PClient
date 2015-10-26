@@ -1,7 +1,9 @@
 package mainframe;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -43,15 +45,14 @@ public class PeerListPanel extends JPanel {
 		
 		peersVector = peersList;
 
+		// 终端信息
 		netAddress = HostInfo.getInetAddress();
 		localIPAddress = HostInfo.getHostIp(netAddress);
 		hostName = HostInfo.getHostName(netAddress);
 		privateInfo = hostName + "[" + localIPAddress + "]";
 
-		// 终端信息
-		
 		terminalRoot.add(new DefaultMutableTreeNode(privateInfo));
-		
+
 		if (null != peersList) {
 			// 好友信息
 			for (int i = 0; i < peersList.size(); i++) {
@@ -70,35 +71,33 @@ public class PeerListPanel extends JPanel {
 		friendsTree = new JTree(ROOT);
 		friendsTree.setRootVisible(false);
 		friendsTree.setFont(new Font("宋体"	, Font.PLAIN, 18));
+		
 
 		// 添加监听事件：双击发送消息
 		friendsTree.addMouseListener(new DoubleClickPanelListener());
 
 		friendsScrollPanel = new JScrollPane(friendsTree);
 		friendsScrollPanel.setAutoscrolls(true);
-		
+				
 		this.setLayout(new BorderLayout());
 		this.add(friendsScrollPanel, BorderLayout.CENTER);
 	}
 
-	public void SetFriendsInfo(Vector<PeerStruct> peersList) {
+	public void SetFriendsInfo(Vector<PeerStruct> peersList, boolean flag) {
 		peersVector = peersList;
 		
 		friendsRoot.removeAllChildren();
-		// 好友信息
-		for (int i = 0; i < peersList.size(); i++) {
-			PeerStruct elemOfPeersList = peersList.get(i);
-			String elemInfo = elemOfPeersList.getName() + " " + elemOfPeersList.getIpAddress() + " "
-					+ elemOfPeersList.getPort();
-			friendsRoot.add(new DefaultMutableTreeNode(elemInfo));
+		
+		if (flag) {
+			// 好友信息
+			for (int i = 0; i < peersList.size(); i++) {
+				PeerStruct elemOfPeersList = peersList.get(i);
+				String elemInfo = elemOfPeersList.getName() + " " + elemOfPeersList.getIpAddress() + " "
+						+ elemOfPeersList.getPort();
+				friendsRoot.add(new DefaultMutableTreeNode(elemInfo));
+			}
 		}
-//
-//		// 设置根节点
-//		DefaultMutableTreeNode[] root = { terminalRoot, friendsRoot };
-//		friendsTree = new JTree(root);
-//
-//		// 添加监听事件：双击发送消息
-//		friendsTree.addMouseListener(new DoubleClickPanelListener());
+		
 	}
 
 	class DoubleClickPanelListener extends MouseAdapter {
@@ -112,15 +111,15 @@ public class PeerListPanel extends JPanel {
 				TreePath path = friendsTree.getPathForLocation(e.getX(), e.getY());
 				TreeNode node = (TreeNode) path.getLastPathComponent();
 				if (node.getParent() == friendsRoot) {
-					int indexOfPeersList = node.getIndex(node);
+					int indexOfPeersList = node.getParent().getIndex(node);
 					// 获取键值：对方主机名+对方IP+对方端口号
 					String windowKey = ProduceKey.getKey(peersVector.get(indexOfPeersList).getName(), 
 							peersVector.get(indexOfPeersList).getIpAddress(),  peersVector.get(indexOfPeersList).getPort());
-						
+					String hashKey = ProduceKey.getHashKey(windowKey);	
 
 					// 弹出发送消息界面...
 					ChattingWindow cw = new ChattingWindow(node.toString());
-					chattingWindowTable.put(windowKey, cw);
+					chattingWindowTable.put(hashKey, cw);
 				}				
 			}
 		}

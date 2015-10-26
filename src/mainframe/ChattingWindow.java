@@ -2,12 +2,14 @@ package mainframe;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.TextArea;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -61,7 +63,7 @@ public class ChattingWindow extends JFrame
 			setTitle(serverName + "[" + serverIP + "]");
 		}
 		else {
-			System.out.println("split error-->" + id);
+//			System.out.println("split error-->" + id);
 		}
 		
 		// 绝对布局
@@ -82,7 +84,7 @@ public class ChattingWindow extends JFrame
 		inputMsgArea = new JTextArea();
 		inputMsgArea.setBackground(Color.white);
 		inputMsgArea.setForeground(Color.black);
-		inputMsgArea.setFont(new Font("楷体", Font.PLAIN, 14));
+		inputMsgArea.setFont(new Font("楷体", Font.PLAIN, 18));
 //		inputMsgArea.setBounds(4, 310, 590, 100);		
 		
 		inputScrollPane = new JScrollPane(inputMsgArea);
@@ -101,9 +103,10 @@ public class ChattingWindow extends JFrame
 				// 通信...
 				String msg = inputMsgArea.getText();
 				sendMsg(msg);
-				String text = HostInfo.getHostIp(HostInfo.getInetAddress())+ ":" + "\n" +
+				String text = "我 [" + HostInfo.getHostIp(HostInfo.getInetAddress())+ "]:" + "\n" +
 				              msg + "\n";
 				setDisplayAreaText(text, alighmentFlag);
+				inputMsgArea.setText("");
 			}
 			
 		});
@@ -122,48 +125,31 @@ public class ChattingWindow extends JFrame
 			}
 		});
 		
+		Toolkit kit = Toolkit.getDefaultToolkit();
+		Dimension dimension = kit.getScreenSize();
+		int screenHeight = dimension.height;
+		int screenWidth = dimension.width;
+		
+		setLocation(screenWidth/4, screenHeight/7);
 		setResizable(false);
 		setLayout(new BorderLayout());
 		add(msgPanel, BorderLayout.CENTER);
+		setIconImage(Toolkit.getDefaultToolkit().createImage("icon/window.png"));
 		setVisible(true);
 	}
 
-	// 接收消息
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-//		String receiveInfo = "";
-//		try {
-//			inBuf = new byte[BUFFER_SIZE];
-//			receivePacket = new DatagramPacket(inBuf, inBuf.length);
-//			receiveSocket = new DatagramSocket(receivePort);
-//		
-//		} catch (Exception e) {
-//			JOptionPane.showMessageDialog(this, e.getMessage(), 
-//					"ChattingWindows Error", JOptionPane.ERROR_MESSAGE);
-//		}
-//		
-//		while (true) {
-//			if (receiveSocket == null) {
-//				break;
-//			}
-//			else {
-//				try {
-//					receiveSocket.receive(receivePacket);
-//					String receiveMsg = new String(receivePacket.getData(), 0, receivePacket.getLength());
-//					displayMsgArea.append(serverName + ":" + "(" + serverIP + ")" +
-//											receiveMsg + "\n");
-//					
-//				} catch (Exception e) {
-//					JOptionPane.showMessageDialog(this, e.getMessage(), 
-//							"ChattingWindows Error", JOptionPane.ERROR_MESSAGE);
-//				}
-//			}
-//		}
+
 	}
 	
 	private void sendMsg(String msg) {
 		try {
+			if (null == msg || msg.equals("")) {
+				msg = "空消息";
+			}
+			
 			InetAddress address = InetAddress.getByName(serverIP);
 			byte[] msgOfBytes = msg.getBytes();
 			sendPacket = new DatagramPacket(msgOfBytes, msgOfBytes.length, address, Integer.parseInt(serverPort));
@@ -177,16 +163,17 @@ public class ChattingWindow extends JFrame
 	}
 	
 	// 设置显示内容，flag = true时左侧显示，蓝色
-	public void setDisplayAreaText(String text, boolean flag) {
-		displayMsgArea.setAlignmentY(RIGHT_ALIGNMENT);
-		displayMsgArea.setForeground(Color.BLACK);
-		
+	public void setDisplayAreaText(String text, boolean flag) {		
+		// 对方发来的消息
 		if (flag) {
-			displayMsgArea.setAlignmentY(LEFT_ALIGNMENT);
-			displayMsgArea.setForeground(Color.BLUE);
+			Font font = new Font("黑体", Font.BOLD, 12);
+		}
+		else {
+			Font font = new Font("宋体", Font.BOLD, 12);
 		}
 		
-		displayMsgArea.setText(text);
+		displayMsgArea.append("\n");
+		displayMsgArea.append(text);
 	}
 	
 //	private void closeSocket() {

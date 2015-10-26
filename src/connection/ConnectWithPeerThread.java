@@ -8,8 +8,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import mainframe.*;
+import myutil.XMLUtil;
 
 public class ConnectWithPeerThread extends Thread {
+	public static boolean flag = true;
 	private PeerListPanel panel = null;
 	private int receivePort = HostInfo.getPort();
 	private DatagramSocket receiveSocket = null;	// 声明接收信息的数据报套接字
@@ -23,6 +25,9 @@ public class ConnectWithPeerThread extends Thread {
 	public ConnectWithPeerThread(PeerListPanel panel) {
 		super();
 		this.panel = panel;
+		
+		this.start();
+//		System.out.println("start");
 	}
 	
 	public void run() {
@@ -30,13 +35,14 @@ public class ConnectWithPeerThread extends Thread {
 		try {
 			inBuf = new byte[BUFFER_SIZE];
 			receivePacket = new DatagramPacket(inBuf, inBuf.length);
-			receiveSocket = new DatagramSocket(receivePort);
+			int port = Integer.parseInt(XMLUtil.getReceivePort(XMLUtil.createDocument()));
+			receiveSocket = new DatagramSocket(port);
 		
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 		
-		while (true) {
+		while (flag) {
 			if (receiveSocket == null) {
 				break;
 			}
@@ -47,21 +53,27 @@ public class ConnectWithPeerThread extends Thread {
 					// 1. 分析是哪个IP发来的
 					String ip = receivePacket.getAddress().getHostAddress();		
 					String name = receivePacket.getAddress().getHostName();
-					String port = Integer.toString(receivePacket.getPort());
+					String port = XMLUtil.getReceivePort(XMLUtil.createDocument());
 					String key = myutil.ProduceKey.getKey(name, ip, port);
+					String hashKey = myutil.ProduceKey.getHashKey(key);
 					
-					
-					String text = name + "[" + ip + "]" + "\n" + receiveMsg;
+					String text = name + "[" + ip + "]:" + "\n" + receiveMsg + "\n";
 					
 					// 2. 判断这个IP的聊天窗口是否已经创建
-					if ( panel.chattingWindowTable.contains(key) ) {
-						// 3. 如果创建了，就直接调用setDisplayAreaText函数						
-						(panel.chattingWindowTable.get(key)).setDisplayAreaText(text, alignmentFlag);
+					if ( panel.chattingWindowTable.containsKey(hashKey) ) {
+						// 3. 如果创建了，就直接调用setDisplayAreaText函数	
+//						System.out.println(text);
+						
+						(panel.chattingWindowTable.get(hashKey)).setDisplayAreaText(text, alignmentFlag);
+						(panel.chattingWindowTable.get(hashKey)).setVisible(true);
 					}
 					else {
 						// 4. 如果没有创建，给客户提示，然后创建窗口，调用函数setDisplayAreaText4
-						panel.chattingWindowTable.put(key, new ChattingWindow(key));
-						(panel.chattingWindowTable.get(key)).setDisplayAreaText(text, alignmentFlag);
+//						System.out.println(text);
+						
+						ChattingWindow cw = new ChattingWindow(key);
+						panel.chattingWindowTable.put(hashKey, cw);
+						(panel.chattingWindowTable.get(hashKey)).setDisplayAreaText(text, alignmentFlag);
 					}
 					
 				} catch (Exception e) {
